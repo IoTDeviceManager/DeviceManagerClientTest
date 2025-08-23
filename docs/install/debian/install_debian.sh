@@ -86,7 +86,7 @@ if ! docker image inspect "$DOCKER_IMAGE" &>/dev/null; then
 fi
 
 if ! docker ps --filter "name=device_manager" --format '{{.Names}}' | grep -q "^device_manager$"; then
-    docker run -d --name=device_manager --network=host \
+    docker run --restart=unless-stopped -d --name=device_manager --network=host \
         -v /etc/os-release:/etc/os-release \
         -v /etc/hosts:/etc/hosts \
         -v "$DEVICE_DIR":"$DEVICE_DIR" \
@@ -108,7 +108,7 @@ Requires=docker.service
 Type=simple
 ExecStart=/usr/local/bin/run_device_manager.sh
 Restart=always
-RestartSec=10
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
@@ -123,7 +123,7 @@ if [[ ! -f "$RUN_SCRIPT" ]]; then
 IMAGE="collabro/iotdevicemanager:1.0.0-$(dpkg --print-architecture)"
 if ! docker ps --filter "name=device_manager" --format '{{.Names}}' | grep -q "^device_manager$"; then
     while true; do
-        docker run -d --name=device_manager --network=host \
+        docker run --restart=unless-stopped -d --name=device_manager --network=host \
             -v /etc/os-release:/etc/os-release \
             -v /etc/hosts:/etc/hosts \
             -v /etc/device.d:/etc/device.d \
