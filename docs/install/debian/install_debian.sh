@@ -4,6 +4,7 @@
 
 NO_INPUT=false
 DEVICE_DIR="/etc/device.d"
+mkdir -p $DEVICE_DIR
 echo $ENCRYPTION_TOKEN > $DEVICE_DIR/iot_token.txt
 
 # Parse flags
