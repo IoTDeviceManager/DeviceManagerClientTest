@@ -105,10 +105,12 @@ After=docker.service
 Requires=docker.service
 
 [Service]
-Type=simple
+Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/local/bin/run_device_manager.sh
-Restart=always
-RestartSec=60
+ExecStop=/usr/bin/docker stop device_manager
+Restart=on-failure
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
@@ -120,16 +122,29 @@ RUN_SCRIPT="/usr/local/bin/run_device_manager.sh"
 if [[ ! -f "$RUN_SCRIPT" ]]; then
     cat <<'EOR' > "$RUN_SCRIPT"
 #!/bin/bash
+set -e
 IMAGE="collabro/iotdevicemanager:1.0.0-$(dpkg --print-architecture)"
-if ! docker ps --filter "name=device_manager" --format '{{.Names}}' | grep -q "^device_manager$"; then
+CONTAINER_NAME="device_manager"
+docker rm "$CONTAINER_NAME" 2>/dev/null || true
+
+if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
     while true; do
-        docker run --restart=unless-stopped -d --name=device_manager --network=host \
+        docker run \
+            --restart=unless-stopped \
+            -d \
+            --name="$CONTAINER_NAME" \
+            --network=host \
             -v /etc/os-release:/etc/os-release \
             -v /etc/hosts:/etc/hosts \
             -v /etc/device.d:/etc/device.d \
             "$IMAGE" && break
+        
+        echo "Failed to start container, retrying in 5 seconds..."
         sleep 5
     done
+    echo "Container $CONTAINER_NAME started successfully"
+else
+    echo "Container $CONTAINER_NAME is already running"
 fi
 EOR
     chmod +x "$RUN_SCRIPT"
