@@ -35,15 +35,54 @@ install_if_missing() {
 }
 
 apt-get update
-install_if_missing docker.io docker-compose openssh-server openssl gzip network-manager
+install_if_missing docker.io docker-compose openssh-server openssl gzip network-manager curl
 
-# 2. Link docker-compose -> docker compose if necessary
-if ! command -v docker-compose &>/dev/null && command -v docker &>/dev/null; then
-    echo "Creating docker-compose alias -> docker compose"
-    ln -sf /usr/bin/docker /usr/local/bin/docker-compose
-    echo 'alias docker-compose="docker compose"' >> /etc/profile.d/docker-compose-alias.sh
-    chmod +x /etc/profile.d/docker-compose-alias.sh
-fi
+# 2. Setup docker-compose compatibility
+setup_docker_compose() {
+    # Check if docker-compose command exists
+    if command -v docker-compose &>/dev/null; then
+        echo "docker-compose command already exists, skipping setup."
+        return
+    fi
+    
+    # Check if docker compose plugin is available
+    if docker compose version &>/dev/null 2>&1; then
+        echo "Setting up docker-compose wrapper for 'docker compose' plugin..."
+        
+        # Create a wrapper script that translates docker-compose to docker compose
+        cat <<'EOF' > /usr/local/bin/docker-compose
+#!/bin/bash
+# Wrapper script to make docker-compose work with docker compose plugin
+exec docker compose "$@"
+EOF
+        chmod +x /usr/local/bin/docker-compose
+        
+        # Also create the alias for interactive shells
+        echo 'alias docker-compose="docker compose"' > /etc/profile.d/docker-compose-alias.sh
+        chmod +x /etc/profile.d/docker-compose-alias.sh
+        
+        echo "Created docker-compose wrapper script at /usr/local/bin/docker-compose"
+        
+    elif command -v docker &>/dev/null; then
+        echo "Docker compose plugin not found, attempting to install standalone docker-compose..."
+        
+        # Try to install standalone docker-compose as fallback
+        if command -v pip3 &>/dev/null; then
+            pip3 install docker-compose
+        elif command -v curl &>/dev/null; then
+            # Install docker-compose binary directly
+            COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+            curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            chmod +x /usr/local/bin/docker-compose
+        else
+            echo "Warning: Could not install docker-compose. Please install it manually."
+        fi
+    else
+        echo "Docker not found, cannot setup docker-compose."
+    fi
+}
+
+setup_docker_compose
 
 # 3. Determine architecture
 ARCH=$(dpkg --print-architecture)
@@ -135,7 +174,7 @@ if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -q "
             --name="$CONTAINER_NAME" \
             --network=host \
             -v /etc/os-release:/etc/os-release \
-            -v /etc/hosts:/etc/hosts \
+            -v /etc/hosts:/etc/hosts \ 
             -v /etc/device.d:/etc/device.d \
             "$IMAGE" && break
         
