@@ -5,6 +5,7 @@
 NO_INPUT=false
 DEVICE_DIR="/etc/device.d"
 mkdir -p $DEVICE_DIR
+echo $ENCRYPTION_TOKEN > $DEVICE_DIR/iot_token.txt
 
 # Parse flags
 if [[ "$1" == "--no-input" ]]; then
@@ -35,15 +36,6 @@ install_if_missing() {
 
 apt-get update
 install_if_missing docker.io docker-compose openssh-server openssl gzip network-manager curl
-
-if [ ! -f "$DEVICE_DIR/iot_token.txt" ]; then
-    # Generate a 32-character random token
-    ENCRYPTION_TOKEN=$(openssl rand -hex 16)
-    echo "$ENCRYPTION_TOKEN" > "$DEVICE_DIR/iot_token.txt"
-else
-    # Read existing token
-    ENCRYPTION_TOKEN=$(cat "$DEVICE_DIR/iot_token.txt")
-fi
 
 # 2. Setup docker-compose compatibility
 setup_docker_compose() {

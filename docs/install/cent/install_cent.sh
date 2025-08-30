@@ -5,6 +5,7 @@
 NO_INPUT=false
 DEVICE_DIR="/etc/device.d"
 mkdir -p $DEVICE_DIR
+echo $ENCRYPTION_TOKEN > $DEVICE_DIR/iot_token.txt
 
 # Parse flags
 if [[ "$1" == "--no-input" ]]; then
@@ -65,15 +66,6 @@ fi
 
 # Install packages (CentOS package names)
 install_if_missing docker-ce docker-compose-plugin openssh-server openssl gzip NetworkManager curl
-
-if [ ! -f "$DEVICE_DIR/iot_token.txt" ]; then
-    # Generate a 32-character random token
-    ENCRYPTION_TOKEN=$(openssl rand -hex 16)
-    echo "$ENCRYPTION_TOKEN" > "$DEVICE_DIR/iot_token.txt"
-else
-    # Read existing token
-    ENCRYPTION_TOKEN=$(cat "$DEVICE_DIR/iot_token.txt")
-fi
 
 # Start and enable Docker
 systemctl start docker
