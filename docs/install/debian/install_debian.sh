@@ -168,16 +168,7 @@ docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
 if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
     while true; do
-        docker run \
-            --restart=unless-stopped \
-            -d \
-            --name="$CONTAINER_NAME" \
-            --network=host \
-            -v /etc/os-release:/etc/os-release \
-            -v /etc/hosts:/etc/hosts \ 
-            -v /etc/device.d:/etc/device.d \
-            "$IMAGE" && break
-        
+        docker run --restart=unless-stopped -d --name="$CONTAINER_NAME" --network=host -v /etc/os-release:/etc/os-release -v /etc/hosts:/etc/hosts -v /etc/device.d:/etc/device.d "$IMAGE" && break
         echo "Failed to start container, retrying in 5 seconds..."
         sleep 5
     done
