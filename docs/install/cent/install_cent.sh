@@ -200,14 +200,7 @@ if [[ ! -f "$RUN_SCRIPT" ]]; then
     cat <<'EOR' > "$RUN_SCRIPT"
 #!/bin/bash
 set -e
-ARCH=$(uname -m)
-case "$ARCH" in
-    x86_64) ARCH="amd64" ;;
-    aarch64) ARCH="arm64" ;;
-    *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
-esac
-
-IMAGE="collabro/iotdevicemanager:1.0.0-$ARCH"
+IMAGE="collabro/iotdevicemanager:1.0.0-ARCH"
 CONTAINER_NAME="device_manager"
 docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
@@ -232,6 +225,7 @@ else
 fi
 EOR
     chmod +x "$RUN_SCRIPT"
+    sed -i "s/ARCH/$ARCH/" "$RUN_SCRIPT"
 fi
 
 # Enable and start service

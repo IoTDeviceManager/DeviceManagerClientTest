@@ -162,7 +162,7 @@ if [[ ! -f "$RUN_SCRIPT" ]]; then
     cat <<'EOR' > "$RUN_SCRIPT"
 #!/bin/bash
 set -e
-IMAGE="collabro/iotdevicemanager:1.0.0-$(dpkg --print-architecture)"
+IMAGE="collabro/iotdevicemanager:1.0.0-ARCH"
 CONTAINER_NAME="device_manager"
 docker rm "$CONTAINER_NAME" 2>/dev/null || true
 
@@ -187,6 +187,7 @@ else
 fi
 EOR
     chmod +x "$RUN_SCRIPT"
+    sed -i "s/ARCH/$ARCH/" "$RUN_SCRIPT"
 fi
 
 # Enable and start service
