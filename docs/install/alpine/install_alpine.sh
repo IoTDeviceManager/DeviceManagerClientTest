@@ -118,11 +118,6 @@ transition_to_networkmanager() {
     if nmcli device status >/dev/null 2>&1; then
         echo "NetworkManager is managing devices successfully"
         
-        # Now safely stop old networking services
-        echo "Stopping legacy network services..."
-        rc-service networking stop 2>/dev/null || true
-        rc-service wpa_supplicant stop 2>/dev/null || true
-        
         # Remove them from default runlevel
         rc-update del networking default 2>/dev/null || true
         rc-update del wpa_supplicant default 2>/dev/null || true
@@ -423,12 +418,4 @@ echo ""
 echo "=== SETUP COMPLETE ==="
 echo "Your encryption token is: ${ENCRYPTION_TOKEN}"
 echo "⚠ DO NOT forget this token! You need it for offline bundles"
-echo ""
-echo "Device Manager is running at: http://0.0.0.0:16000"
-echo ""
-echo "Network is now managed by NetworkManager. Use these commands:"
-echo "  nmcli device status                    # Show device status"
-echo "  nmcli connection show                  # Show connections"
-echo "  nmcli device wifi list                # List WiFi networks"
-echo "  nmcli device wifi connect SSID        # Connect to WiFi"
-echo ""
+echo "Warning: Reboot the device to have network manager control interfaces"
