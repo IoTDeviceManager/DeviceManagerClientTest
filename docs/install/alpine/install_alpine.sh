@@ -70,7 +70,7 @@ dhcp=internal
 no-auto-default=*
 
 [ifupdown]
-managed=true
+managed=false
 
 [device]
 wifi.scan-rand-mac-address=no
