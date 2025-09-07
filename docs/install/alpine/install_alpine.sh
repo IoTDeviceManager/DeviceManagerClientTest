@@ -35,6 +35,7 @@ install_if_missing() {
     done
 }
 
+setup-apkrepos -cf
 apk update
 install_if_missing docker docker-compose openssh openssl gzip networkmanager curl
 
