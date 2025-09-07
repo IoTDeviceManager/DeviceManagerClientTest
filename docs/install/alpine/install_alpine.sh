@@ -40,7 +40,7 @@ install_if_missing() {
 
 setup-apkrepos -cf
 apk update
-install_if_missing docker docker-compose openssh openssl gzip networkmanager curl
+install_if_missing docker docker-compose openssh openssl gzip networkmanager networkmanager-cli curl
 
 # 2. Backup existing network configuration
 backup_network_config() {
