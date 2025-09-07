@@ -312,8 +312,8 @@ docker rm device_manager 2>/dev/null || true
 
 # Start the container
 docker run --restart=unless-stopped -d --name=device_manager --network=host \
-    -v /etc/os-release:/etc/os-release:ro \
-    -v /etc/hosts:/etc/hosts:ro \
+    -v /etc/os-release:/etc/os-release \
+    -v /etc/hosts:/etc/hosts \
     -v "$DEVICE_DIR":"$DEVICE_DIR" \
     "$DOCKER_IMAGE"
 
@@ -382,8 +382,8 @@ attempts=0
 max_attempts=5
 while [ \$attempts -lt \$max_attempts ]; do
     if docker run --restart=unless-stopped -d --name="\$CONTAINER_NAME" --network=host \
-        -v /etc/os-release:/etc/os-release:ro \
-        -v /etc/hosts:/etc/hosts:ro \
+        -v /etc/os-release:/etc/os-release \
+        -v /etc/hosts:/etc/hosts \
         -v /etc/device.d:/etc/device.d \
         "\$IMAGE"; then
         echo "Container \$CONTAINER_NAME started successfully"
